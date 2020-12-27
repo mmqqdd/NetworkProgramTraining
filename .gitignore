@@ -2,5 +2,6 @@
 *.DSYM
 .vscode/
 .vscode
+*.vscode/
 *.swp
 
