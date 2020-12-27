@@ -1,0 +1,5 @@
+*.[oa]
+*.DSYM
+.vscode/
+*.swp
+
