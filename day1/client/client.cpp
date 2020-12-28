@@ -4,6 +4,7 @@
 #include<unistd.h>
 #include<arpa/inet.h>
 #include<sys/socket.h>
+#include<sys/types.h>
 /*
  * 客户端套接字
  * socket函数创建
