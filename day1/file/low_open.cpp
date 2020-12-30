@@ -3,7 +3,9 @@
 #include<fcntl.h>
 #include<unistd.h>
 void error_handling(char* message);
-
+/*
+ * 向文件写入
+ */
 int main(){
     int fd;
     char buf[]="Let's go!\n";
@@ -15,7 +17,6 @@ int main(){
         error_handling((char*)"write() error!");
     close(fd);
     return 0;
-
 }
 
 void error_handling(char *message){

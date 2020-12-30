@@ -16,7 +16,7 @@ int main(int argc, char* argv[]){
     int sock;
     struct sockaddr_in serv_addr;
     char message[30];
-    int str_len;
+    int str_len=0;
     printf("服务器端套接字\n");
     if (argc!=3){
         printf("Usage : %s <IP> <port>\n",argv[0]);
@@ -34,10 +34,15 @@ int main(int argc, char* argv[]){
     if(connect(sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr)) == -1)
         error_handling((char *)"connect() error");
     printf("服务器端套接字连接成功-------2\n");
-    str_len=read(sock,message,sizeof(message)-1);
-    if (str_len==-1)
-        error_handling((char *)"read() error!");
+    int read_len;
+    while((read_len=read(sock,message+str_len,1))){
+        if (read_len==-1)
+            error_handling((char *)"read() error!");
+        str_len+=read_len;
+    }
+
     printf("Message from server : %s \n",message);
+    printf("Fucntion read call count: %d\n",str_len);
     close(sock);
     return 0;
 }
