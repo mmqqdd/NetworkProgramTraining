@@ -54,7 +54,7 @@ void echo(int sock){
     char tp_c;
     printf("input something:\n");
     while(1){
-        scanf("%[^\n]%c",message,&tp_c);// 后面加一个%c是为了读取输入缓冲区的换行符, 如果不读出来,会死循环.
+        scanf("%[^\n]",message); scanf("%*c");// 后面加一个%c是为了读取输入缓冲区的换行符, 如果不读出来,会死循环.
         str_len = strlen(message);
         if (str_len == 1 && message[0] == 'q')
             break;

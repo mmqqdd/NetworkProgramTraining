@@ -4,7 +4,9 @@
 #include<string.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
-
+/*
+ * 这个代码有个问题, 输出会重复一遍, 确实只发送了一遍
+ */
 #define BUF_SIZE 1024
 void error_handling(char *message);
 void succ(char *message);
@@ -33,11 +35,11 @@ int main(int argc, char **argv){
         //if (read_len == 0) continue;
         if (read_len == -1)
             break;
-        buf[read_len] = 0;
-        fprintf(stdout, "%s",buf);
+        //buf[read_len] = 0;
+        fprintf(stdout, "%d-r-%d %s\n",read_len,strlen(buf),buf);
         //sleep(2);
     }
-
+    close(recv_sock);
 }
 
 void error_handling(char *message){

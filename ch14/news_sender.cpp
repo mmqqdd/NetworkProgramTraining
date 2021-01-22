@@ -23,8 +23,10 @@ int main(int argc, char **argv){
     mul_addr.sin_addr.s_addr = inet_addr(argv[1]);
     mul_addr.sin_port = htons(atoi(argv[2]));
     while(!feof(fp)){
-        fgets(buf, BUF_SIZE-1, fp);
-        sendto(send_sock, buf, BUF_SIZE, 0, (struct sockaddr*)&mul_addr, sizeof(mul_addr));
+        fgets(buf, BUF_SIZE, fp);
+        buf[strlen(buf)] = 0;
+        sendto(send_sock, buf, strlen(buf)+1, 0, (struct sockaddr*)&mul_addr, sizeof(mul_addr));
+        printf("s-%d %s",strlen(buf),buf);
     }
     fclose(fp);
     close(send_sock);
@@ -39,3 +41,4 @@ void succ(char *message){
     fprintf(stdout,"%d %s successed\n",getpid(),message);
 }
 /////最后一行为什么没有发送出去
+//
