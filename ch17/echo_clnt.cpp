@@ -8,7 +8,7 @@
 #define BUF_SIZE 1024
 
 /*
- * 回声客户端
+ * 回声客户端模版
  * 
  */
 void error_handling(char *message);

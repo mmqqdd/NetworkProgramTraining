@@ -19,6 +19,7 @@ void error_handling(char*); //打印错误信息
 void succ(char*); //打印成功信息
 void sock_init(int* , sockaddr_in* , int); //初始化套接字
 int main(int argc, char **argv){
+    
     if (argc != 2){
         printf("Usage: %s <port>", argv[0]);
         exit(1);
