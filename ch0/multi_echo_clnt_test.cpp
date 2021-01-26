@@ -6,25 +6,38 @@
 #include <unistd.h>
 
 #define BUF_SIZE 1024
-
+#define MAXN 10
 /*
- * 回声客户端模版
+ * 创建多个回声客户端, 模拟多个客户端
  *
  */
 void error_handling(char* message);
 void succ(char* message);
 void init_sock(int*, char*, char*);
-void echo(int sock);
+int echo(int sock, FILE*);
 int main(int argc, char** argv) {
     if (argc != 3) {
         printf("Usage: %s <IP> <port>\n", argv[0]);
         exit(1);
     }
-    int sock;
-    struct sockaddr_in serv_addr;
-    init_sock(&sock, argv[1], argv[2]);
-    echo(sock);
-    close(sock);
+    int sock[MAXN];
+    int i;
+    FILE* fp = fopen("multi_echo_clnt_test.cpp", "r");
+    for (i = 0; i < MAXN; i++) {
+        init_sock(sock + i, argv[1], argv[2]);
+    }
+    int tot = 0;
+    while (tot < MAXN) {
+        tot = 0;
+        for (i = 0; i < MAXN; i++) {
+            if (sock[i] == -1) {
+                tot++;
+                continue;
+            }
+            sock[i] = echo(sock[i], fp);
+        }
+    }
+    fclose(fp);
 }
 
 void error_handling(char* message) {
@@ -52,25 +65,24 @@ void init_sock(int* sock, char* ip, char* port) {
     else
         succ((char*)"connect");
 }
-void echo(int sock) {
+int echo(int sock, FILE* fp) {
     char message[BUF_SIZE];
     int str_len, read_len;
     char tp_c;
-    printf("input something:\n");
-    while (1) {
-        scanf("%[^\n]", message);
-        scanf("%*c");  // 后面加一个%c是为了读取输入缓冲区的换行符,
-                       // 如果不读出来,会死循环.
-        str_len = strlen(message);
-        if (str_len == 1 && message[0] == 'q')
-            break;
-        write(sock, message, str_len);
-        read_len = 0;
-        while (read_len < str_len) {
-            read_len += read(sock, message + read_len, str_len - read_len);
-        }
-        message[read_len] = 0;
-        printf("message from server is %s\n", message);
+    // printf("input something:\n");
+    message[0] = 0;
+    fgets(message,BUF_SIZE, fp);
+    str_len = strlen(message);
+    if (str_len == 0){
+        close(sock);
+        return -1;
     }
-    // pipe();
+        write(sock, message, str_len);
+    read_len = 0;
+    while (read_len < str_len) {
+        read_len += read(sock, message + read_len, str_len - read_len);
+    }
+    message[read_len] = 0;
+    printf("message from server is %s\n", message);
+    return sock;
 }
