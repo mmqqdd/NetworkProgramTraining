@@ -71,13 +71,13 @@ int echo(int sock, FILE* fp) {
     char tp_c;
     // printf("input something:\n");
     message[0] = 0;
-    fgets(message,BUF_SIZE, fp);
+    fgets(message, BUF_SIZE, fp);
     str_len = strlen(message);
-    if (str_len == 0){
+    if (str_len == 0) {
         close(sock);
         return -1;
     }
-        write(sock, message, str_len);
+    write(sock, message, str_len);
     read_len = 0;
     while (read_len < str_len) {
         read_len += read(sock, message + read_len, str_len - read_len);
