@@ -24,18 +24,20 @@ void* read(void*) {
     int i;
     for (i = 0; i < 5; i++) {
         sem_wait(&sem1);
+		printf("input a number \n");
         scanf("%d", &num);
         sem_post(&sem2);
     }
     return NULL;
 }
 
-void* cal(void*) {
+void* calc(void*) {
     int i, ans = 0;
     for (i = 0; i < 5; i++) {
         sem_wait(&sem2);
         ans += num;
         sem_post(&sem1);
+		printf("after %d times, ans is %d\n",i+1,ans);
     }
     printf("ans is %d", ans);
     return NULL;
