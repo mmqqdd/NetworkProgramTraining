@@ -10,7 +10,7 @@
  * 多人聊天客户端
  * 原理:
  *  1. 开两个线程, 一个负责读, 一个负责写
- *  2. 好像没了
+ *  2. 写和读的时候互斥一下
  */
 
 #define BUF_SIZE 1024
@@ -80,10 +80,11 @@ void* read_from_server(void* args) {
     int name_len, str_len;
     char name[NAME_MAX_LEN], buf[BUF_SIZE];
     while (1) {
-        if (isClose) break;
+        if (isClose)
+            break;
         pthread_mutex_lock(&mutx_read);
         int sig = read(sock, &name_len, sizeof(name_len));
-        if (sig == -1){
+        if (sig == -1) {
             exit(1);
         }
         if (name_len == -1) {
@@ -124,6 +125,7 @@ void* write_to_server(void* args) {
     write(sock, &name_len, sizeof(name_len));
     write(sock, name, name_len);
     str = (char*)"加入聊天室";
+    str = "加入聊天室";
     str_len = strlen(str);
     write(sock, &str_len, sizeof(str_len));
     write(sock, str, str_len);
@@ -137,6 +139,7 @@ void* write_to_server(void* args) {
         pthread_mutex_lock(&mutx_write);
         if (str_len == 1 && buf[0] == 'q') {
             char* ptr = (char*)"退出聊天室";
+
             str_len = strlen(ptr);
             write(sock, &str_len, sizeof(str_len));
             write(sock, ptr, str_len);

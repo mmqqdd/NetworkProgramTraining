@@ -96,14 +96,14 @@ void* handle_clnt(void* args) {
     pthread_mutex_unlock(&mutx);
     fprintf(stdout, "----------\n");
     while (1) {
-        read(sock, &str_len, sizeof(str_len));
-        pthread_mutex_lock(&mutx);
-        int sig = read(sock, buf, str_len);
+        int sig = read(sock, &str_len, sizeof(str_len));
+        pthread_mutex_lock(&mutx);      
         if (str_len == -1 || sig == -1 || sig == 0) {
             pthread_mutex_unlock(&mutx);
             fprintf(stderr, "%s 用户退出\n", name);
             break;
         }
+        read(sock, buf, str_len);
         pthread_mutex_unlock(&mutx);
         buf[str_len] = 0;
         printf("--%s: %s\n", name, buf);
