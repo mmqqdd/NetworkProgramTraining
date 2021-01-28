@@ -125,7 +125,7 @@ void* write_to_server(void* args) {
     write(sock, &name_len, sizeof(name_len));
     write(sock, name, name_len);
     str = (char*)"加入聊天室";
-    str = "加入聊天室";
+    str = (char*)"加入聊天室";
     str_len = strlen(str);
     write(sock, &str_len, sizeof(str_len));
     write(sock, str, str_len);
