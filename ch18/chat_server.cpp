@@ -22,6 +22,10 @@
 void error_handling(char*);               //打印错误信息
 void succ(char*);                         //打印成功信息
 void sock_init(int*, sockaddr_in*, int);  //初始化套接字
+int mqd_read(int, char*);
+int mqd_write(int, char*);
+void write_to_all(char*, char*);
+void remove_sock(int);
 void* handle_clnt(void*);
 
 int clnt_cnt = 0, socks[CLNT_MAX_NUM];
@@ -43,7 +47,9 @@ int main(int argc, char** argv) {
             error_handling((char*)"accept()");
         else
             succ((char*)"accept()");
+        pthread_mutex_lock(&mutx);
         socks[clnt_cnt++] = clnt_sock;
+        pthread_mutex_unlock(&mutx);
         pthread_create(&tr_id, NULL, handle_clnt,
                        (void*)(socks + clnt_cnt - 1));
         pthread_detach(tr_id);
@@ -84,43 +90,79 @@ void sock_init(int* sock, sockaddr_in* addr, int port) {
 void* handle_clnt(void* args) {
     int sock = *((int*)args);
     int name_len, str_len;
-    int i;
+    int sig;
     char buf[BUFSIZ], name[NAME_MAX_LEN];
 
-    // printf("%d %d\n",sock,name_len);
-    read(sock, &name_len, sizeof(name_len));
-    pthread_mutex_lock(&mutx);
-    // printf("%d %d\n",sock,name_len);
-    read(sock, name, name_len);
+    // pthread_mutex_lock(&mutx); //注意这里不是临界区,
+    // 因为只有一个线程会read(sock)
+    name_len = mqd_read(sock, name);
     name[name_len] = 0;
-    pthread_mutex_unlock(&mutx);
+    // pthread_mutex_unlock(&mutx);
     fprintf(stdout, "----------\n");
     while (1) {
-        int sig = read(sock, &str_len, sizeof(str_len));
-        pthread_mutex_lock(&mutx);      
-        if (str_len == -1 || sig == -1 || sig == 0) {
-            pthread_mutex_unlock(&mutx);
+        int str_len = mqd_read(sock, buf);
+        if (str_len == -1) {
             fprintf(stderr, "%s 用户退出\n", name);
             break;
         }
-        read(sock, buf, str_len);
-        pthread_mutex_unlock(&mutx);
-        buf[str_len] = 0;
-        printf("--%s: %s\n", name, buf);
-        for (i = 0; i < clnt_cnt; i++) {
-            pthread_mutex_lock(&mutx);
-            write(socks[i], &name_len, sizeof(name_len));
-            write(socks[i], name, name_len);
-            write(socks[i], &str_len, sizeof(str_len));
-            write(socks[i], buf, str_len);
-            pthread_mutex_unlock(&mutx);
+        if (str_len == 0) {
+            fprintf(stderr, "%s 异常退出\n", name);
+            write_to_all(name, (char*)"异常退出");
+            break;
         }
+        buf[str_len] = 0;
+        write_to_all(name, buf);
     }
-    i = 0;
+    remove_sock(sock);
+    return NULL;
+}
+void write_to_all(char* name, char* buf) {
+    int i;
+    char mesg[BUFSIZ];
+    sprintf(mesg, "[%s]: %s", name, buf);
+    printf("%s\n", mesg);
+    pthread_mutex_lock(&mutx);
+    for (i = 0; i < clnt_cnt; i++) {
+        mqd_write(socks[i], mesg);
+    }
+    pthread_mutex_unlock(&mutx);
+}
+void remove_sock(int sock) {
+    pthread_mutex_lock(&mutx);
+    int i = 0;
     while (socks[i] != sock)
         i++;
     clnt_cnt--;
     while (i < clnt_cnt)
         socks[i] = socks[i + 1];
+    pthread_mutex_unlock(&mutx);
     close(sock);
+}
+int mqd_write(int sock, char* s) {
+    int str_len = strlen(s);
+    static char buf[BUFSIZ + 4];
+    for (int i = 0; i < 4; i++) {
+        sprintf(buf + i, "%c", (char)str_len % 16);
+        str_len /= 16;
+    }
+    sprintf(buf + 4, "%s", s);
+    write(sock, buf,
+          strlen(s) + 4);  //注意不是strlen(buf),因为前面四个字节可能出现\0
+    return strlen(s);
+}
+int mqd_read(int sock, char* buf) {
+    int str_len = 0;
+    int x = 1;
+    int sig = read(sock, buf, 4);
+    if (sig == -1 || sig == 0)
+        return sig;
+    for (int i = 0; i < 4; i++) {
+        str_len += x * (int)buf[i];
+        x *= 16;
+    }
+    if (str_len == -1)
+        return 0;
+    read(sock, buf, str_len);
+    buf[str_len] = 0;
+    return str_len;
 }

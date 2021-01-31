@@ -7,6 +7,7 @@
 
 
 
+
         {
             "name": "121.37.129.143 client",
             "type": "cppdbg",
@@ -21,6 +22,21 @@
             "MIMode": "lldb",
             "preLaunchTask": "C/C++: g++-9 build active file"
         },
+        {
+            "name": "本地 9190 client",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}.o",
+            "args": ["127.0.0.1","9190"],
+            //"args": ["9190"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb",
+            "preLaunchTask": "C/C++: g++-9 build active file"
+        },
+        
         {
             "name": "server 9190",
             "type": "cppdbg",
